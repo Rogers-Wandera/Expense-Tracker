@@ -14,14 +14,14 @@ import {
   Link as HeroLink,
 } from "@heroui/react";
 import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ArrowRight,
-  Github,
-  Chrome,
-} from "lucide-react";
+  IconEye,
+  IconEyeOff,
+  IconMail,
+  IconLock,
+  IconArrowRight,
+  IconBrandGithub,
+  IconBrandChrome,
+} from "@tabler/icons-react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -49,14 +49,14 @@ export default function LoginPage() {
           <Button
             variant="bordered"
             className="h-12"
-            startContent={<Chrome className="w-5 h-5" />}
+            startContent={<IconBrandChrome className="w-5 h-5" />}
           >
             Google
           </Button>
           <Button
             variant="bordered"
             className="h-12"
-            startContent={<Github className="w-5 h-5" />}
+            startContent={<IconBrandGithub className="w-5 h-5" />}
           >
             GitHub
           </Button>
@@ -77,7 +77,7 @@ export default function LoginPage() {
             placeholder="name@company.com"
             variant="bordered"
             size="lg"
-            startContent={<Mail className="w-5 h-5 text-gray-400" />}
+            startContent={<IconMail className="w-5 h-5 text-gray-400" />}
             className="w-full"
           />
 
@@ -87,7 +87,7 @@ export default function LoginPage() {
             placeholder="••••••••"
             variant="bordered"
             size="lg"
-            startContent={<Lock className="w-5 h-5 text-gray-400" />}
+            startContent={<IconLock className="w-5 h-5 text-gray-400" />}
             endContent={
               <button
                 type="button"
@@ -95,9 +95,9 @@ export default function LoginPage() {
                 className="focus:outline-none"
               >
                 {showPassword ? (
-                  <EyeOff className="w-5 h-5 text-gray-400" />
+                  <IconEyeOff className="w-5 h-5 text-gray-400" />
                 ) : (
-                  <Eye className="w-5 h-5 text-gray-400" />
+                  <IconEye className="w-5 h-5 text-gray-400" />
                 )}
               </button>
             }
@@ -117,7 +117,7 @@ export default function LoginPage() {
             size="lg"
             className="w-full font-semibold"
             isLoading={isLoading}
-            endContent={<ArrowRight className="w-4 h-4" />}
+            endContent={<IconArrowRight className="w-4 h-4" />}
           >
             Sign in
           </Button>

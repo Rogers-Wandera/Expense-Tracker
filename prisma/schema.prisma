@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid()) @db.VarChar(255)
+  firstName     String    @db.VarChar(100)
+  lastName      String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(255)
+  password      String    @db.VarChar(255)
+  lastLoginDate DateTime? @db.Timestamptz(6)
+  imageUrl      Json?
+  isVerified    Boolean   @default(false)
+  isLocked      Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  createdBy     String?   @db.VarChar(255)
+  updatedBy     String?   @db.VarChar(255)
+  deletedBy     String?   @db.VarChar(255)
+  deletedAt     String?   @db.VarChar(255)
+
+  @@index([email])
+  @@index([createdAt])
+}

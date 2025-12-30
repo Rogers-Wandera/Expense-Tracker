@@ -172,7 +172,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         {/* Mobile Layout - Stacked */}
         <div className="lg:hidden flex flex-col gap-4">
           {/* First row: Title and User */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-10 lg:mt-0">
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 Dashboard

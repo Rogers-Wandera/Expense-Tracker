@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Button,
   Input,
@@ -11,11 +11,19 @@ import {
   CardBody,
   CardHeader,
   addToast,
+  Image,
 } from "@heroui/react";
-import { IconX, IconCheck } from "@tabler/icons-react";
+import {
+  IconX,
+  IconCheck,
+  IconUpload,
+  IconTrash,
+  IconReceipt,
+} from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
 import { PaymentMethod, ExpenseStatus } from "@/generated/prisma";
 import { useMutate } from "@/hooks/use-mutate";
+import { uploadToCloudinary } from "@/lib/utils";
 
 interface Category {
   id: string;
@@ -44,6 +52,11 @@ export function ExpenseForm({
 }: ExpenseFormProps) {
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(
+    expense?.attachmentUrl || null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync } = useMutate({});
 
   // Set default values
@@ -76,6 +89,28 @@ export function ExpenseForm({
       setIsInitialized(true);
     }
   }, [categories, departments, isInitialized]);
+
+  const handleReceiptUpload = async (file: File) => {
+    setUploadingReceipt(true);
+    try {
+      const result = await uploadToCloudinary(file);
+      if (result.secure_url) {
+        form.setFieldValue("attachmentUrl", result.secure_url);
+        setReceiptPreview(result.secure_url);
+        addToast({ title: "Receipt uploaded successfully" });
+      }
+    } catch (error: any) {
+      addToast({
+        title: error.message || "Failed to upload receipt",
+        color: "danger",
+      });
+    } finally {
+      setUploadingReceipt(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const handleSubmit = async (data: any) => {
     setLoading(true);
@@ -132,6 +167,50 @@ export function ExpenseForm({
   };
 
   const paymentMethods = Object.values(PaymentMethod);
+
+  // Allowed file types for receipts
+  const allowedFileTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/bmp",
+    "application/pdf",
+  ];
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!allowedFileTypes.includes(file.type)) {
+      addToast({
+        title:
+          "Invalid file type. Please upload an image (JPG, PNG, GIF, etc.) or PDF.",
+        color: "danger",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    // Check file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      addToast({
+        title: "File is too large. Maximum size is 10MB.",
+        color: "danger",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    handleReceiptUpload(file);
+  };
 
   return (
     <Card>
@@ -320,22 +399,142 @@ export function ExpenseForm({
             )}
           </div>
 
-          {/* Attachment URL Field */}
-          <form.Field name="attachmentUrl">
-            {(field) => (
-              <div>
-                <Input
-                  label="Attachment URL (Optional)"
-                  placeholder="https://example.com/receipt.jpg"
-                  value={field.state.value || ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  isInvalid={field.state.meta.errors.length > 0}
-                  errorMessage={field.state.meta.errors.join(", ")}
-                />
-              </div>
-            )}
-          </form.Field>
+          {/* Receipt Upload Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <IconReceipt className="w-5 h-5 text-gray-500" />
+              <label className="text-sm font-medium">Receipt/Attachment</label>
+            </div>
+
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 transition-colors hover:border-primary">
+              <input
+                type="file"
+                ref={fileInputRef}
+                id="receipt-upload"
+                accept="image/*,.pdf"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+
+              {receiptPreview ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    {receiptPreview.endsWith(".pdf") ? (
+                      <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <IconReceipt className="w-8 h-8 text-red-600" />
+                        <div>
+                          <p className="font-medium">PDF Receipt</p>
+                          <p className="text-sm text-gray-500">
+                            Click to view/download
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <Image
+                          src={receiptPreview}
+                          alt="Receipt preview"
+                          className="w-32 h-32 object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <Button
+                            size="sm"
+                            variant="flat"
+                            color="danger"
+                            isIconOnly
+                            onPress={() => {
+                              setReceiptPreview(null);
+                              form.setFieldValue("attachmentUrl", "");
+                            }}
+                          >
+                            <IconTrash className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium">
+                          Current receipt:
+                        </span>
+                        <a
+                          href={receiptPreview}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          View full size
+                        </a>
+                      </div>
+                      <Button
+                        variant="flat"
+                        onPress={() => fileInputRef.current?.click()}
+                        isLoading={uploadingReceipt}
+                        startContent={
+                          !uploadingReceipt && (
+                            <IconUpload className="w-4 h-4" />
+                          )
+                        }
+                      >
+                        {uploadingReceipt ? "Uploading..." : "Replace Receipt"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="light"
+                      color="danger"
+                      onPress={() => {
+                        setReceiptPreview(null);
+                        form.setFieldValue("attachmentUrl", "");
+                      }}
+                      startContent={<IconTrash className="w-4 h-4" />}
+                    >
+                      Remove Receipt
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                      <IconUpload className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        Upload receipt or attachment
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Upload an image or PDF file (max 10MB)
+                      </p>
+                    </div>
+                    <Button
+                      variant="flat"
+                      onPress={() => fileInputRef.current?.click()}
+                      isLoading={uploadingReceipt}
+                      startContent={
+                        !uploadingReceipt && <IconUpload className="w-4 h-4" />
+                      }
+                    >
+                      {uploadingReceipt ? "Uploading..." : "Choose File"}
+                    </Button>
+                    <p className="text-xs text-gray-400">
+                      Supports: JPG, PNG, GIF, PDF
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Hidden field to store the URL */}
+            <input
+              type="hidden"
+              value={form.getFieldValue("attachmentUrl") || ""}
+            />
+          </div>
 
           {/* Notes Field */}
           <form.Field name="notes">

@@ -24,6 +24,7 @@ import {
 import { Button, Divider, Tooltip, Badge, Switch } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { LogoutButton } from "./logout-button";
+import { UserRole } from "@/generated/prisma";
 
 interface SidebarItem {
   name: string;
@@ -31,6 +32,7 @@ interface SidebarItem {
   icon: React.ReactNode;
   badge?: number;
   isActive?: boolean;
+  visible?: boolean;
 }
 
 interface DashboardSidebarProps {
@@ -41,17 +43,23 @@ interface DashboardSidebarProps {
     lastName: string;
     image?: string;
     isVerified?: boolean;
+    role?: UserRole;
   };
   onCollapseChange?: (collapsed: boolean) => void;
 }
 
-export function DashboardSidebar({ onCollapseChange }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  onCollapseChange,
+  user,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
+
+  const isAdmin = user?.role === UserRole.ADMIN;
 
   // Detect mobile screen
   useEffect(() => {
@@ -84,28 +92,36 @@ export function DashboardSidebar({ onCollapseChange }: DashboardSidebarProps) {
       name: "Dashboard",
       href: "/dashboard",
       icon: <IconDashboard className="w-5 h-5" />,
+      visible: true,
     },
     {
       name: "Expenses",
       href: "/dashboard/expenses",
       icon: <IconReceipt className="w-5 h-5" />,
+      visible: true,
     },
     {
       name: "Users",
       href: "/dashboard/users",
       icon: <IconUsers className="w-5 h-5" />,
+      visible: isAdmin,
     },
     {
       name: "Departments",
       href: "/dashboard/departments",
       icon: <IconBuilding className="w-5 h-5" />,
+      visible: true,
     },
     {
       name: "Categories",
       href: "/dashboard/categories",
       icon: <IconCategoryFilled className="w-5 h-5" />,
+      visible: true,
     },
   ];
+
+  // Filter navigation items based on visibility
+  const visibleNavigation = navigation.filter((item) => item.visible !== false);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -215,7 +231,7 @@ export function DashboardSidebar({ onCollapseChange }: DashboardSidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <div className="space-y-1">
-            {navigation.map((item) => (
+            {visibleNavigation.map((item) => (
               <div key={item.name}>
                 <Link
                   href={item.href}

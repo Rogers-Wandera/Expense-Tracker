@@ -22,7 +22,6 @@ import {
   IconLock,
   IconArrowRight,
   IconBrandGithub,
-  IconBrandChrome,
   IconAlertCircle,
 } from "@tabler/icons-react";
 import { showToast } from "@/components/error-toast";
@@ -84,25 +83,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialLogin = async (provider: "google" | "github") => {
-    try {
-      setIsLoading(true);
-      await signIn(provider, {
-        callbackUrl,
-        redirect: true,
-      });
-    } catch (err) {
-      console.error("Social login error:", err);
-      setError("Failed to sign in with social provider");
-      showToast({
-        message: "Social login failed",
-        type: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (session.status !== "loading" && session.data?.user) {
       router.push(callbackUrl);
@@ -137,35 +117,6 @@ export default function LoginPage() {
             {error}
           </Alert>
         )}
-
-        {/* Social Login */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="bordered"
-            className="h-12"
-            startContent={<IconBrandChrome className="w-5 h-5" />}
-            onPress={() => handleSocialLogin("google")}
-            isDisabled={isLoading}
-          >
-            Google
-          </Button>
-          <Button
-            variant="bordered"
-            className="h-12"
-            startContent={<IconBrandGithub className="w-5 h-5" />}
-            onPress={() => handleSocialLogin("github")}
-            isDisabled={isLoading}
-          >
-            GitHub
-          </Button>
-        </div>
-
-        <div className="relative">
-          <Divider />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-3 bg-white dark:bg-gray-900 text-sm text-gray-500">
-            Or continue with
-          </span>
-        </div>
 
         {/* Email/Password Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -225,9 +176,9 @@ export default function LoginPage() {
             >
               Remember me
             </Checkbox>
-            <HeroLink href="/forgot-password" className="text-sm text-blue-600">
+            {/* <HeroLink href="/forgot-password" className="text-sm text-blue-600">
               Forgot password?
-            </HeroLink>
+            </HeroLink> */}
           </div>
 
           <Button
@@ -245,22 +196,22 @@ export default function LoginPage() {
       </CardBody>
 
       <CardFooter className="flex flex-col space-y-4 pt-4">
-        <div className="text-center text-sm">
+        {/* <div className="text-center text-sm">
           <span className="text-gray-600 dark:text-gray-400">
             Don&apos;t have an account?{" "}
           </span>
           <HeroLink href="/register" className="font-semibold text-blue-600">
             Get started
           </HeroLink>
-        </div>
+        </div> */}
 
         <div className="text-center text-xs text-gray-500">
           By continuing, you agree to our{" "}
-          <HeroLink href="/terms" className="text-xs">
+          <HeroLink href="#" className="text-xs">
             Terms of Service
           </HeroLink>{" "}
           and{" "}
-          <HeroLink href="/privacy" className="text-xs">
+          <HeroLink href="#" className="text-xs">
             Privacy Policy
           </HeroLink>
         </div>

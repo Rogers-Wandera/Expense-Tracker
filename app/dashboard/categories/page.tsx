@@ -356,7 +356,9 @@ export default function CategoriesPage() {
                 {isAdmin ? (
                   <TableColumn className="w-25 text-right">ACTIONS</TableColumn>
                 ) : (
-                  <></>
+                  <TableColumn>
+                    <></>
+                  </TableColumn>
                 )}
               </TableHeader>
               <TableBody emptyContent="No categories found">

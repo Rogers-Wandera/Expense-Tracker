@@ -389,7 +389,9 @@ export default function DepartmentsPage() {
                 {isAdmin ? (
                   <TableColumn className="w-25 text-right">ACTIONS</TableColumn>
                 ) : (
-                  <></>
+                  <TableColumn>
+                    <></>
+                  </TableColumn>
                 )}
               </TableHeader>
               <TableBody emptyContent="No departments found">

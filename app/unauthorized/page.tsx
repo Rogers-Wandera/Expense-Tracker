@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardBody, Button } from "@heroui/react";
 import { IconLock, IconHome } from "@tabler/icons-react";
 import { signOut } from "next-auth/react";

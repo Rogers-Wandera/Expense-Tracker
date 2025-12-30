@@ -5,7 +5,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import {
   IconReceipt,
-  IconUsers,
   IconCheck,
   IconClock,
   IconTrendingUp,
@@ -37,7 +36,6 @@ interface StatsCarouselProps {
     approvedCount: number;
     paidAmount: number;
     paidCount: number;
-    totalUsers: number;
   };
 }
 
@@ -111,16 +109,6 @@ export function StatsCarousel({ stats }: StatsCarouselProps) {
       icon: <IconCurrencyDollar className="w-5 h-5" />,
       color: "bg-gradient-to-br from-purple-500 to-violet-600",
       description: `${stats.paidCount} paid`,
-      trend: "up",
-    },
-    {
-      id: "users",
-      title: "Active Users",
-      value: stats.totalUsers,
-      change: 5.2,
-      icon: <IconUsers className="w-5 h-5" />,
-      color: "bg-gradient-to-br from-indigo-500 to-blue-600",
-      description: "Registered users",
       trend: "up",
     },
   ];

@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -7,30 +7,88 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+  VIEWER
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  MOBILE_MONEY
+  CHEQUE
+  OTHER
+}
+
+enum ExpenseStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model Department {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  code        String    @unique
+  description String?
+  budget      Float?
+  color       String?
+  icon        String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  // Relationships
+  expenses    Expense[]
+  users       User[]    // Add this reverse relation
+  createdByUser User?    @relation("DepartmentCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("DepartmentUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([isActive])
+  @@index([code])
+}
+
 model User {
-  id            String    @id @default(cuid()) @db.VarChar(255)
-  firstName     String    @db.VarChar(100)
-  lastName      String    @db.VarChar(100)
-  email         String    @unique @db.VarChar(255)
-  password      String    @db.VarChar(255)
-  lastLoginDate DateTime? @db.Timestamptz(6)
-  imageUrl      Json?
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  password      String
+  role          UserRole  @default(STAFF)
+  departmentId  String?
+  lastLoginDate DateTime?
+  imageUrl      String?
   isVerified    Boolean   @default(false)
   isLocked      Boolean   @default(false)
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
-  createdBy     String?   @db.VarChar(255)
-  updatedBy     String?   @db.VarChar(255)
-  deletedBy     String?   @db.VarChar(255)
-  deletedAt     String?   @db.VarChar(255)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     String?
+  updatedBy     String?
+  deletedBy     String?
+  deletedAt     DateTime?
 
+  // Relationships
   accounts      Account[]
-  sessions      Session[]
+  department    Department? @relation(fields: [departmentId], references: [id])
+  createdExpenses Expense[] @relation("ExpenseCreatedBy")
+  updatedExpenses Expense[] @relation("ExpenseUpdatedBy")
+  createdCategories Category[] @relation("CategoryCreatedBy")
+  updatedCategories Category[] @relation("CategoryUpdatedBy")
+  createdDepartments Department[] @relation("DepartmentCreatedBy")
+  updatedDepartments Department[] @relation("DepartmentUpdatedBy")
 
   @@index([email])
   @@index([createdAt])
+  @@index([role])
+  @@index([departmentId])
 }
-
 
 model Account {
   id                String  @id @default(cuid())
@@ -49,18 +107,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -70,4 +117,55 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  color       String?
+  icon        String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?
+  updatedBy   String?
+
+  // Relationships
+  expenses    Expense[]
+  createdByUser User?    @relation("CategoryCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("CategoryUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([isActive])
+}
+
+model Expense {
+  id            String        @id @default(cuid())
+  amount        Float         
+  description   String
+  date          DateTime
+  categoryId    String
+  departmentId  String?
+  paymentMethod PaymentMethod @default(CARD)
+  status        ExpenseStatus @default(PENDING)
+  attachmentUrl String?
+  notes         String?
+  
+  // Audit fields
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     String
+  updatedBy     String?
+  
+  // Relationships
+  category      Category      @relation(fields: [categoryId], references: [id])
+  department    Department?   @relation(fields: [departmentId], references: [id])
+  createdByUser User          @relation("ExpenseCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?         @relation("ExpenseUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([date])
+  @@index([status])
+  @@index([categoryId])
+  @@index([departmentId])
+  @@index([createdBy])
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Button,
   Input,
@@ -12,6 +13,7 @@ import {
   Divider,
   Checkbox,
   Link as HeroLink,
+  Alert,
 } from "@heroui/react";
 import {
   IconEye,
@@ -21,11 +23,91 @@ import {
   IconArrowRight,
   IconBrandGithub,
   IconBrandChrome,
+  IconAlertCircle,
 } from "@tabler/icons-react";
+import { showToast } from "@/components/error-toast";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const session = useSession();
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: true,
+  });
+
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+        callbackUrl,
+      });
+
+      if (result?.error) {
+        throw result;
+      } else {
+        // Login successful
+        showToast({
+          message: "Login successful!",
+          type: "success",
+        });
+
+        // Force refresh to update session
+        router.refresh();
+
+        // Redirect to dashboard
+        router.push(callbackUrl);
+      }
+    } catch (err) {
+      const error = err as any;
+
+      setError(
+        error?.message ||
+          error?.error ||
+          "An unexpected error occurred. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: "google" | "github") => {
+    try {
+      setIsLoading(true);
+      await signIn(provider, {
+        callbackUrl,
+        redirect: true,
+      });
+    } catch (err) {
+      console.error("Social login error:", err);
+      setError("Failed to sign in with social provider");
+      showToast({
+        message: "Social login failed",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session.status !== "loading" && session.data?.user) {
+      router.push(callbackUrl);
+    }
+  }, [session.data]);
 
   return (
     <Card className="max-w-md mx-auto border-none shadow-2xl dark:bg-gray-900/50">
@@ -44,12 +126,26 @@ export default function LoginPage() {
       <Divider />
 
       <CardBody className="space-y-6">
+        {/* Error Alert */}
+        {error && (
+          <Alert
+            variant="flat"
+            color="danger"
+            startContent={<IconAlertCircle className="w-5 h-5" />}
+            className="mb-4"
+          >
+            {error}
+          </Alert>
+        )}
+
         {/* Social Login */}
         <div className="grid grid-cols-2 gap-3">
           <Button
             variant="bordered"
             className="h-12"
             startContent={<IconBrandChrome className="w-5 h-5" />}
+            onPress={() => handleSocialLogin("google")}
+            isDisabled={isLoading}
           >
             Google
           </Button>
@@ -57,6 +153,8 @@ export default function LoginPage() {
             variant="bordered"
             className="h-12"
             startContent={<IconBrandGithub className="w-5 h-5" />}
+            onPress={() => handleSocialLogin("github")}
+            isDisabled={isLoading}
           >
             GitHub
           </Button>
@@ -70,13 +168,19 @@ export default function LoginPage() {
         </div>
 
         {/* Email/Password Form */}
-        <form className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             type="email"
             label="Email address"
             placeholder="name@company.com"
             variant="bordered"
             size="lg"
+            value={formData.email}
+            onValueChange={(value) =>
+              setFormData({ ...formData, email: value })
+            }
+            isRequired
+            isDisabled={isLoading}
             startContent={<IconMail className="w-5 h-5 text-gray-400" />}
             className="w-full"
           />
@@ -87,12 +191,19 @@ export default function LoginPage() {
             placeholder="••••••••"
             variant="bordered"
             size="lg"
+            value={formData.password}
+            onValueChange={(value) =>
+              setFormData({ ...formData, password: value })
+            }
+            isRequired
+            isDisabled={isLoading}
             startContent={<IconLock className="w-5 h-5 text-gray-400" />}
             endContent={
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="focus:outline-none"
+                className="focus:outline-none disabled:opacity-50"
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <IconEyeOff className="w-5 h-5 text-gray-400" />
@@ -105,7 +216,15 @@ export default function LoginPage() {
           />
 
           <div className="flex items-center justify-between">
-            <Checkbox defaultSelected>Remember me</Checkbox>
+            <Checkbox
+              isSelected={formData.rememberMe}
+              onValueChange={(checked) =>
+                setFormData({ ...formData, rememberMe: checked })
+              }
+              isDisabled={isLoading}
+            >
+              Remember me
+            </Checkbox>
             <HeroLink href="/forgot-password" className="text-sm text-blue-600">
               Forgot password?
             </HeroLink>
@@ -117,6 +236,7 @@ export default function LoginPage() {
             size="lg"
             className="w-full font-semibold"
             isLoading={isLoading}
+            isDisabled={isLoading}
             endContent={<IconArrowRight className="w-4 h-4" />}
           >
             Sign in

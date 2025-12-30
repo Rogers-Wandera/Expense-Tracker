@@ -1,3 +1,4 @@
+import { UserRole } from "@/generated/prisma";
 import NextAuth from "next-auth";
 
 declare module "next-auth" {
@@ -7,6 +8,7 @@ declare module "next-auth" {
       email?: string | null;
       firstName?: string | null;
       lastName?: string | null;
+      role?: UserRole;
       isVerified: boolean;
       image?: string;
     };
@@ -16,6 +18,7 @@ declare module "next-auth" {
     id: string;
     firstName?: string | null;
     lastName?: string | null;
+    role?: UserRole;
     isVerified: boolean;
   }
 }
@@ -25,6 +28,7 @@ declare module "next-auth/jwt" {
     id: string;
     firstName?: string | null;
     lastName?: string | null;
+    role?: UserRole;
     isVerified: boolean;
   }
 }

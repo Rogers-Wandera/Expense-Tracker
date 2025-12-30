@@ -62,8 +62,7 @@ export function useMutate<TData = any, TVariables = any>({
       method = "POST",
     }: MutateCallbackProps<TVariables>): Promise<TData> => {
       try {
-        const baseUri =
-          url || `${api.defaults.baseURL}/${nomarlizeEndPoint(endPoint)}`;
+        const baseUri = url || `${nomarlizeEndPoint(endPoint)}`;
         const headers: Record<string, any> = { ...(configs?.headers || {}) };
 
         if (withAuth && !user?.id) {
@@ -81,6 +80,7 @@ export function useMutate<TData = any, TVariables = any>({
 
         return response.data;
       } catch (error) {
+        console.log("error", error);
         throw normalizeError(error);
       }
     },

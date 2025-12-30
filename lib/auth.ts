@@ -1,37 +1,38 @@
 import { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { Adapter } from "next-auth/adapters";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as Adapter,
-
   session: {
-    strategy: "database", // using database for session management
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
     updateAge: 24 * 60 * 60, // Update session every 24 hours
+  },
+
+  // JWT configuration
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days,
   },
 
   // Custom pages
   pages: {
-    signIn: "/login",
-    signOut: "/login",
-    error: "/login",
-    newUser: "/register",
+    signIn: "/auth/login",
+    signOut: "/auth/login",
+    error: "/auth/login",
   },
 
   providers: [
     CredentialsProvider({
-      name: "credentials",
+      name: "Credentials",
+      id: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Email and password are required");
         }
 
         // Find user by email
@@ -41,7 +42,7 @@ export const authOptions: NextAuthOptions = {
 
         // Check if user exists
         if (!user) {
-          return null;
+          throw new Error("No user found");
         }
 
         // Check if account is locked
@@ -56,7 +57,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isValidPassword) {
-          return null;
+          throw new Error("Passwords donot match");
         }
 
         // Update last login date
@@ -73,60 +74,26 @@ export const authOptions: NextAuthOptions = {
           lastName: user.lastName,
           isVerified: user.isVerified,
           image: (user?.imageUrl as any)?.url,
+          role: user.role,
         };
       },
     }),
   ],
 
-  // Callbacks for session management
-  callbacks: {
-    async session({ session, user, token }) {
-      // Add user info to session
-      if (session.user) {
-        session.user.id = token?.id || user?.id;
-        session.user.firstName = token?.firstName || user?.firstName;
-        session.user.lastName = token?.lastName || user?.lastName;
-        session.user.isVerified = token?.isVerified || user?.isVerified;
-      }
-      return session;
-    },
-
-    async jwt({ token, user }) {
-      // Add user info to JWT
-      if (user) {
-        token.id = user.id;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.isVerified = user.isVerified;
-      }
-      return token;
-    },
-
-    async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after login
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
-      } else if (new URL(url).origin === baseUrl) {
-        return url;
-      }
-      return baseUrl + "/dashboard";
-    },
-  },
-
-  // Secure cookie configuration
+  // Cookies configuration
   cookies: {
     sessionToken: {
-      name: `__Secure-next-auth.session-token`,
+      name: `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production", // HTTPS only in production
+        secure: process.env.NODE_ENV === "production",
         maxAge: 30 * 24 * 60 * 60, // 30 days
       },
     },
     callbackUrl: {
-      name: `__Secure-next-auth.callback-url`,
+      name: `next-auth.callback-url`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -135,7 +102,7 @@ export const authOptions: NextAuthOptions = {
       },
     },
     csrfToken: {
-      name: `__Secure-next-auth.csrf-token`,
+      name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -143,8 +110,71 @@ export const authOptions: NextAuthOptions = {
         secure: process.env.NODE_ENV === "production",
       },
     },
+    pkceCodeVerifier: {
+      name: `next-auth.pkce.code-verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 15, // 15 minutes
+      },
+    },
   },
 
-  // Secret for JWT encryption
+  callbacks: {
+    async jwt({ token, user, account, profile, trigger, session }) {
+      // Initial sign in
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.isVerified = user.isVerified;
+        token.image = user.image;
+        token.role = user.role;
+      }
+
+      // Handle session update (if you want to update JWT when session is updated)
+      if (trigger === "update" && session) {
+        // Update token with new session data if needed
+        token = { ...token, ...session.user };
+      }
+
+      return token;
+    },
+
+    async session({ session, token, user }) {
+      // Send properties to the client
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.firstName = token.firstName as string;
+        session.user.lastName = token.lastName as string;
+        session.user.isVerified = token.isVerified as boolean;
+        session.user.image = token.image as string;
+        session.user.role = token.role;
+      }
+
+      return session;
+    },
+
+    async redirect({ url, baseUrl }) {
+      // Redirect to dashboard after successful login
+      if (url === baseUrl || url.startsWith(baseUrl + "/api/auth")) {
+        return `${baseUrl}/dashboard`;
+      }
+      // Allow relative callback URLs
+      else if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // Allow external URLs if needed (careful with this)
+      else if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      return baseUrl;
+    },
+  },
+
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -46,10 +46,6 @@ export const ERROR_MESSAGES = {
 } as const;
 
 export const normalizeError = (error: unknown): IServerErrorResponse => {
-  if (isServerErrorResponse(error)) {
-    return error;
-  }
-
   if (error instanceof AxiosError) {
     const responseData = error.response?.data;
 
@@ -67,6 +63,10 @@ export const normalizeError = (error: unknown): IServerErrorResponse => {
       success: false,
       error: error.code,
     };
+  }
+
+  if (isServerErrorResponse(error)) {
+    return error;
   }
 
   if (error instanceof Error) {

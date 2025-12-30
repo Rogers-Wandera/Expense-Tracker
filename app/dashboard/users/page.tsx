@@ -23,7 +23,7 @@ import { UserForm } from "@/components/users/form";
 import UserTable from "./table";
 import { useMutate } from "@/hooks/use-mutate";
 import { WithAuth } from "@/lib/hocs/with-auth";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@/generated/prisma";
 
 export default function UsersPage() {
   const { data: session } = useSession();

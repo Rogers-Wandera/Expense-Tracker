@@ -4,7 +4,7 @@ A production-ready internal expense and accounting management platform built wit
 
 # 🚀 Live Demo
 
-Vercel Deployment: https://xenfi-expense-tracker.vercel.app
+Vercel Deployment: [https://xenfi-expense-tracker.vercel.app](https://expense-tracker-gw3s.vercel.app/auth/login)
 
 # Demo Credentials:
 

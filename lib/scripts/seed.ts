@@ -7,12 +7,10 @@ async function main() {
 
   try {
     // Clear existing data
-    await prisma.account.deleteMany();
     await prisma.expense.deleteMany();
     await prisma.category.deleteMany();
     await prisma.department.deleteMany();
     await prisma.user.deleteMany();
-    await prisma.verificationToken.deleteMany();
 
     console.log("🧹 Cleared existing data");
 

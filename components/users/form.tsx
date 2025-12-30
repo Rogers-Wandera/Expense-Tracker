@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Button,
   Input,
@@ -45,6 +45,7 @@ export function UserForm({
   const [imagePreview, setImagePreview] = useState<string | null>(
     user?.imageUrl || null
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync } = useMutate({});
 
   // Set default values
@@ -92,6 +93,9 @@ export function UserForm({
       });
     } finally {
       setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -150,6 +154,12 @@ export function UserForm({
     }
   };
 
+  useEffect(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [onCancel]);
+
   const roles = Object.values(UserRole);
 
   return (
@@ -183,6 +193,7 @@ export function UserForm({
             />
             <input
               type="file"
+              ref={fileInputRef}
               id="image-upload"
               accept="image/*"
               className="hidden"
@@ -195,7 +206,7 @@ export function UserForm({
             />
             <Button
               variant="flat"
-              onPress={() => document.getElementById("image-upload")?.click()}
+              onPress={() => fileInputRef.current?.click()}
               isLoading={uploadingImage}
               startContent={
                 !uploadingImage && <IconUpload className="w-4 h-4" />

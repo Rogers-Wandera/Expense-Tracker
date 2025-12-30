@@ -3,14 +3,6 @@
 import { Card, CardBody, CardHeader, Progress } from "@heroui/react";
 import { IconCategory, IconBuilding } from "@tabler/icons-react";
 
-interface BreakdownItem {
-  name: string;
-  amount: number;
-  count: number;
-  color: string;
-  percentage: number;
-}
-
 interface BreakdownCardsProps {
   categoryBreakdown: Array<{
     categoryName: string;

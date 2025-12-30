@@ -78,7 +78,6 @@ export function useFetch<T = unknown>({
   const getAxiosConfigs = useCallback((): AxiosRequestConfig => {
     const headers: Record<string, any> = { ...(configs?.headers || {}) };
     const params = getUrlParams ? getUrlParams() : {};
-    console.log("params", params);
 
     return { headers, params };
   }, [configs, withAuth, getUrlParams]);
@@ -245,13 +244,10 @@ export function useLazyFetch<T = unknown>({
     mutationFn: async (variables = {}) => {
       try {
         if (!canFetch) throw new Error("Authentication required");
-        let baseUrl =
-          url || `${api.defaults.baseURL}/${nomarlizeEndPoint(endPoint)}`;
+        let baseUrl = url || `${nomarlizeEndPoint(endPoint)}`;
         if (variables?.url) baseUrl = variables.url;
         if (variables?.endPoint) {
-          baseUrl = `${api.defaults.baseURL}/${nomarlizeEndPoint(
-            variables.endPoint
-          )}`;
+          baseUrl = `${nomarlizeEndPoint(variables.endPoint)}`;
         }
 
         await beforeFetch?.();

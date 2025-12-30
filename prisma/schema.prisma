@@ -67,12 +67,23 @@ model User {
   imageUrl      String?
   isVerified    Boolean   @default(false)
   isLocked      Boolean   @default(false)
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   createdBy     String?
   updatedBy     String?
   deletedBy     String?
   deletedAt     DateTime?
+
+  // Self-referential relationships for audit trail
+  createdByUser User?      @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?      @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+  deletedByUser User?      @relation("UserDeletedBy", fields: [deletedBy], references: [id])
+  
+  // Users created/updated by this user
+  createdUsers  User[]     @relation("UserCreatedBy")
+  updatedUsers  User[]     @relation("UserUpdatedBy")
+  deletedUsers  User[]     @relation("UserDeletedBy")
 
   // Relationships
   accounts      Account[]

@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   IconDashboard,
   IconReceipt,
-  IconChartBar,
-  IconFileText,
   IconUsers,
-  IconSettings,
   IconLogout,
   IconMenu2,
   IconX,
@@ -21,6 +18,8 @@ import {
   IconHelp,
   IconMoon,
   IconSun,
+  IconBuilding,
+  IconCategoryFilled,
 } from "@tabler/icons-react";
 import { Button, Divider, Tooltip, Badge, Switch } from "@heroui/react";
 import { useTheme } from "next-themes";
@@ -46,16 +45,13 @@ interface DashboardSidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
 }
 
-export function DashboardSidebar({
-  user,
-  onCollapseChange,
-}: DashboardSidebarProps) {
+export function DashboardSidebar({ onCollapseChange }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const router = useRouter();
 
   // Detect mobile screen
   useEffect(() => {
@@ -93,7 +89,6 @@ export function DashboardSidebar({
       name: "Expenses",
       href: "/dashboard/expenses",
       icon: <IconReceipt className="w-5 h-5" />,
-      badge: 12,
     },
     {
       name: "Users",
@@ -101,41 +96,15 @@ export function DashboardSidebar({
       icon: <IconUsers className="w-5 h-5" />,
     },
     {
-      name: "Reports",
-      href: "/reports",
-      icon: <IconChartBar className="w-5 h-5" />,
+      name: "Departments",
+      href: "/dashboard/departments",
+      icon: <IconBuilding className="w-5 h-5" />,
     },
     {
-      name: "Documents",
-      href: "/documents",
-      icon: <IconFileText className="w-5 h-5" />,
+      name: "Categories",
+      href: "/dashboard/categories",
+      icon: <IconCategoryFilled className="w-5 h-5" />,
     },
-    {
-      name: "Team",
-      href: "/team",
-      icon: <IconUsers className="w-5 h-5" />,
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: <IconSettings className="w-5 h-5" />,
-    },
-  ];
-
-  const accountingSubmenu = [
-    { name: "Chart of Accounts", href: "/accounting/chart" },
-    { name: "Journal Entries", href: "/accounting/journal" },
-    { name: "General Ledger", href: "/accounting/ledger" },
-    { name: "Trial Balance", href: "/accounting/trial-balance" },
-    { name: "Financial Statements", href: "/accounting/statements" },
-  ];
-
-  const reportsSubmenu = [
-    { name: "Profit & Loss", href: "/reports/profit-loss" },
-    { name: "Balance Sheet", href: "/reports/balance-sheet" },
-    { name: "Cash Flow", href: "/reports/cash-flow" },
-    { name: "Expense Analysis", href: "/reports/expense-analysis" },
-    { name: "Tax Reports", href: "/reports/tax" },
   ];
 
   const isActive = (href: string) => {
@@ -282,53 +251,6 @@ export function DashboardSidebar({
                     </>
                   )}
                 </Link>
-
-                {/* Submenus - Only show when not collapsed */}
-                {!isDesktopCollapsed && (
-                  <>
-                    {/* Accounting submenu */}
-                    {item.name === "Accounting" && isActive("/accounting") && (
-                      <div className="ml-12 mt-1 space-y-1">
-                        {accountingSubmenu.map((subItem) => (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-                              pathname === subItem.href
-                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                            }`}
-                            onClick={() => setIsMobileOpen(false)}
-                          >
-                            <div className="w-1 h-1 rounded-full bg-current" />
-                            {subItem.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Reports submenu */}
-                    {item.name === "Reports" && isActive("/reports") && (
-                      <div className="ml-12 mt-1 space-y-1">
-                        {reportsSubmenu.map((subItem) => (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
-                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-                              pathname === subItem.href
-                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                            }`}
-                            onClick={() => setIsMobileOpen(false)}
-                          >
-                            <div className="w-1 h-1 rounded-full bg-current" />
-                            {subItem.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
               </div>
             ))}
           </div>
@@ -348,7 +270,10 @@ export function DashboardSidebar({
                     color="primary"
                     className="w-full justify-start"
                     startContent={<IconWallet className="w-4 h-4" />}
-                    onClick={() => setIsMobileOpen(false)}
+                    onPress={() => {
+                      setIsMobileOpen(false);
+                      router.push("/dashboard/expenses");
+                    }}
                   >
                     Add Expense
                   </Button>
@@ -357,18 +282,12 @@ export function DashboardSidebar({
                     color="secondary"
                     className="w-full justify-start"
                     startContent={<IconCategory className="w-4 h-4" />}
-                    onClick={() => setIsMobileOpen(false)}
+                    onPress={() => {
+                      setIsMobileOpen(false);
+                      router.push("/dashboard/categories");
+                    }}
                   >
                     Manage Categories
-                  </Button>
-                  <Button
-                    variant="flat"
-                    color="success"
-                    className="w-full justify-start"
-                    startContent={<IconReport className="w-4 h-4" />}
-                    onClick={() => setIsMobileOpen(false)}
-                  >
-                    Generate Report
                   </Button>
                 </div>
               </div>
@@ -403,24 +322,6 @@ export function DashboardSidebar({
               className={isDesktopCollapsed ? "" : ""}
             />
           </div>
-
-          {/* Help and support - Only show when not collapsed */}
-          {!isDesktopCollapsed && (
-            <div className="flex items-center justify-between">
-              <Button
-                variant="light"
-                size="sm"
-                startContent={<IconHelp className="w-4 h-4" />}
-                className="text-gray-600 dark:text-gray-400"
-                onClick={() => setIsMobileOpen(false)}
-              >
-                Help & Support
-              </Button>
-              <Badge size="sm" color="danger" variant="flat">
-                3
-              </Badge>
-            </div>
-          )}
 
           {/* Logout */}
           <div>

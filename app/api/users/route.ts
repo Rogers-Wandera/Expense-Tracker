@@ -73,7 +73,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Exclude deleted users
-    where.deletedAt = null;
+    if (
+      where.isActive ||
+      where.isActive === true ||
+      where.isActive === undefined
+    ) {
+      where.deletedAt = null;
+    }
 
     // Get total count for pagination
     const totalCount = await prisma.user.count({ where });

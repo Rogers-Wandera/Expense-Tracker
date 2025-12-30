@@ -83,6 +83,37 @@ export const normalizeError = (error: unknown): IServerErrorResponse => {
     };
   }
 
+  if (error && typeof error === "object" && "error" in error) {
+    if (typeof error.error === "string") {
+      return {
+        statusCode: 500,
+        path: "/",
+        timestamp: new Date().toISOString(),
+        message: error.error,
+        stack: "",
+        success: false,
+      };
+    }
+
+    if (
+      error.error &&
+      typeof error.error === "object" &&
+      "message" in error.error
+    ) {
+      return {
+        statusCode: 500,
+        path: "/",
+        timestamp: new Date().toISOString(),
+        message:
+          typeof error.error.message === "string"
+            ? error.error.message
+            : "An unknown error occurred",
+        stack: "",
+        success: false,
+      };
+    }
+  }
+
   return {
     statusCode: 500,
     path: "/",
@@ -118,7 +149,6 @@ export async function uploadToCloudinary(file: File): Promise<any> {
 
     return await response.json();
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    throw error;
+    throw normalizeError(error);
   }
 }

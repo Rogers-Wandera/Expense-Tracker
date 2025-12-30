@@ -21,6 +21,7 @@ import UserStats from "./stats";
 import UserFilters from "./filters";
 import { UserForm } from "@/components/users/form";
 import UserTable from "./table";
+import { useMutate } from "@/hooks/use-mutate";
 
 export default function UsersPage() {
   const { data: session } = useSession();
@@ -29,6 +30,7 @@ export default function UsersPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const { mutateAsync } = useMutate({});
 
   // Filters
   const [filters, setFilters] = useState({
@@ -82,7 +84,6 @@ export default function UsersPage() {
 
       return params;
     },
-    manual: false,
     onError: (error) => {
       addToast({ title: error.message || "Failed to fetch users" });
     },
@@ -94,8 +95,7 @@ export default function UsersPage() {
     departments: { id: string; name: string; color?: string }[];
   }>({
     queryKey: ["departments"],
-    endPoint: "/api/departments",
-    manual: false,
+    endPoint: "departments",
   });
 
   // Extract data from responses
@@ -180,21 +180,24 @@ export default function UsersPage() {
     if (!userToDelete || !isAdmin) return;
 
     try {
-      const response = await fetch(`/api/users/${userToDelete}`, {
+      const response = await mutateAsync({
         method: "DELETE",
+        endPoint: `users/${userToDelete}`,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to delete user");
+      if (response?.error) {
+        if (typeof response?.error === "string") {
+          throw new Error(response.error);
+        } else {
+          throw response.error;
+        }
       }
 
-      const result = await response.json();
-
-      if (result.success) {
-        addToast({ title: result.message });
+      if (response.message) {
+        addToast({ title: response.message });
         refetchUsers(); // Refresh the list
       } else {
-        addToast({ title: result?.error || "An error occurred" });
+        addToast({ title: response?.error || "An error occurred" });
       }
     } catch (error: any) {
       addToast({ title: error.message || "Failed to delete user" });
@@ -212,23 +215,25 @@ export default function UsersPage() {
     if (!isAdmin) return;
 
     try {
-      const response = await fetch(`/api/users/${id}`, {
+      const response = await mutateAsync({
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, value }),
+        endPoint: `users/${id}`,
+        variables: { action, value },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update user status");
+      if (response?.error) {
+        if (typeof response?.error === "string") {
+          throw new Error(response.error);
+        } else {
+          throw response.error;
+        }
       }
 
-      const result = await response.json();
-
-      if (result.success) {
-        addToast({ title: result.message });
+      if (response.message) {
+        addToast({ title: response.message });
         refetchUsers(); // Refresh the list
       } else {
-        addToast({ title: result.error });
+        addToast({ title: response.error });
       }
     } catch (error: any) {
       addToast({ title: error.message || "Failed to update user status" });

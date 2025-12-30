@@ -349,9 +349,15 @@ export async function PATCH(
       );
     }
 
+    const where: any = {};
+
+    if (action !== "activate") {
+      where.deletedAt = null;
+    }
+
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id, deletedAt: null },
+      where: { id, ...where },
     });
 
     if (!existingUser) {
@@ -382,6 +388,7 @@ export async function PATCH(
         break;
       case "activate":
         updateData.isActive = value;
+        updateData.deletedAt = null;
         message = value
           ? "User activated successfully"
           : "User deactivated successfully";

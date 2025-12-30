@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Spinner } from "@heroui/react";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@/generated/prisma";
 
 interface WithAuthProps {
   children: React.ReactNode;

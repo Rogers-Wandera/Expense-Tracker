@@ -23,7 +23,7 @@ export function Providers({
       <ThemeProvider>
         <AuthProvider session={session}>
           <HeroUIProvider navigate={router.push}>
-            <ToastProvider />
+            <ToastProvider placement="top-right" />
             {children}
           </HeroUIProvider>
         </AuthProvider>

@@ -101,13 +101,13 @@ export default function ExpenseDetailPage() {
         <div className="flex items-center gap-4">
           <Button
             variant="light"
-            onPress={() => router.push("/expenses")}
+            onPress={() => router.push("/dashboard/expenses")}
             startContent={<IconArrowLeft className="w-4 h-4" />}
           >
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
               Expense Details
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -116,20 +116,9 @@ export default function ExpenseDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Chip color={getStatusColor(expense.status)} variant="flat" size="lg">
+          <Chip color={getStatusColor(expense.status)} variant="flat" size="sm">
             {expense.status}
           </Chip>
-          {(["ADMIN", "MANAGER"].includes(session?.user?.role || "") ||
-            (session?.user?.role === "STAFF" &&
-              expense.createdBy === session.user.id)) && (
-            <Button
-              color="primary"
-              onPress={() => router.push(`/expenses/edit/${expense.id}`)}
-              startContent={<IconEdit className="w-4 h-4" />}
-            >
-              Edit
-            </Button>
-          )}
         </div>
       </div>
 

@@ -20,7 +20,7 @@ export interface FetchProps<T = unknown> {
   url?: string;
   endPoint?: string;
   configs?: AxiosRequestConfig;
-  setUrlOptions?: (url: URL) => URL;
+  getUrlParams?: () => Record<string, string | number | boolean>;
   manual?: boolean;
   afterFetch?: (data: T) => void | Promise<void>;
   beforeFetch?: () => void | Promise<void>;
@@ -50,7 +50,7 @@ const nomarlizeEndPoint = (endPoint: string | undefined) => {
 
 export function useFetch<T = unknown>({
   queryKey,
-  setUrlOptions,
+  getUrlParams,
   manual = true,
   url,
   endPoint = "",
@@ -77,28 +77,29 @@ export function useFetch<T = unknown>({
 
   const getAxiosConfigs = useCallback((): AxiosRequestConfig => {
     const headers: Record<string, any> = { ...(configs?.headers || {}) };
+    const params = getUrlParams ? getUrlParams() : {};
+    console.log("params", params);
 
-    return headers;
-  }, [configs, withAuth]);
+    return { headers, params };
+  }, [configs, withAuth, getUrlParams]);
 
   const stableQueryKey = useMemo(() => {
     const baseKey = normalizeQueryKey(queryKey);
-
     return [...baseKey];
   }, [queryKey]);
 
   const queryFn = useCallback(async (): Promise<T> => {
     try {
-      const baseUrl =
-        url || `${api.defaults.baseURL}/${nomarlizeEndPoint(endPoint)}`;
-      const finalUrl = new URL(baseUrl);
-      const fetchUrl = setUrlOptions ? setUrlOptions(finalUrl) : finalUrl;
+      const baseUrl = url || `${nomarlizeEndPoint(endPoint)}`;
+
       await beforeFetch?.();
       const axiosConfigs = getAxiosConfigs();
-      const response = await api.get<T>(fetchUrl.href, {
+
+      const response = await api.get<T>(baseUrl, {
         withCredentials: true,
         ...axiosConfigs,
       });
+
       await afterFetch?.(response.data);
       return response.data;
     } catch (error) {
@@ -107,13 +108,14 @@ export function useFetch<T = unknown>({
       throw normalizedError;
     }
   }, [
-    setUrlOptions,
+    getUrlParams,
     url,
     endPoint,
     getAxiosConfigs,
     beforeFetch,
     afterFetch,
     onError,
+    stableQueryKey,
   ]);
 
   const queryOptions = useMemo(
@@ -212,7 +214,7 @@ type ApiResponse<T> = T & {
 export function useLazyFetch<T = unknown>({
   url,
   endPoint = "",
-  setUrlOptions,
+  getUrlParams,
   configs = {},
   beforeFetch,
   afterFetch,
@@ -246,19 +248,27 @@ export function useLazyFetch<T = unknown>({
         let baseUrl =
           url || `${api.defaults.baseURL}/${nomarlizeEndPoint(endPoint)}`;
         if (variables?.url) baseUrl = variables.url;
-        if (variables?.endPoint)
+        if (variables?.endPoint) {
           baseUrl = `${api.defaults.baseURL}/${nomarlizeEndPoint(
             variables.endPoint
           )}`;
-        const finalUrl = new URL(baseUrl);
-        const fetchUrl = setUrlOptions ? setUrlOptions(finalUrl) : finalUrl;
+        }
+
         await beforeFetch?.();
         const axiosConfigs = getAxiosConfigs();
-        const response = await api.get<ApiResponse<T>>(fetchUrl.href, {
+
+        // Merge provided params with getUrlParams
+        const allParams = {
+          ...(getUrlParams ? getUrlParams() : {}),
+          ...(variables?.params || {}),
+        };
+
+        const response = await api.get<ApiResponse<T>>(baseUrl, {
           withCredentials: true,
           ...axiosConfigs,
-          params: variables?.params,
+          params: allParams,
         });
+
         await afterFetch?.(response.data);
         return response.data;
       } catch (error) {

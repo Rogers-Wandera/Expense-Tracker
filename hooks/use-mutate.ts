@@ -80,7 +80,6 @@ export function useMutate<TData = any, TVariables = any>({
 
         return response.data;
       } catch (error) {
-        console.log("error", error);
         throw normalizeError(error);
       }
     },

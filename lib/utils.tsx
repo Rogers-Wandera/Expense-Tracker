@@ -58,7 +58,10 @@ export const normalizeError = (error: unknown): IServerErrorResponse => {
       path: error.config?.url || "/",
       timestamp: new Date().toISOString(),
       message:
-        error.response?.data?.message || error.message || "An error occurred",
+        responseData?.message ||
+        responseData?.error ||
+        error.message ||
+        "An error occurred",
       stack: process.env.NODE_ENV === "development" ? error.stack || "" : "",
       success: false,
       error: error.code,
@@ -89,3 +92,33 @@ export const normalizeError = (error: unknown): IServerErrorResponse => {
     success: false,
   };
 };
+
+export async function uploadToCloudinary(file: File): Promise<any> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append(
+    "upload_preset",
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+  );
+  formData.append("cloud_name", process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!);
+  formData.append("folder", "expense-tracker/users");
+
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to upload image to Cloudinary");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    throw error;
+  }
+}

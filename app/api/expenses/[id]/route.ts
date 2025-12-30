@@ -7,17 +7,18 @@ import { expenseSchema } from "@/lib/validations/expense";
 // GET: Get single expense
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const expense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         category: { select: { name: true, color: true } },
         department: { select: { name: true, color: true } },
@@ -68,18 +69,26 @@ export async function GET(
 // PUT: Update expense
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Id is required" },
+        { status: 404 }
+      );
+    }
+
     // Check if expense exists and user has permission
     const existingExpense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingExpense) {
@@ -112,7 +121,7 @@ export async function PUT(
 
     // Update expense
     const expense = await prisma.expense.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...validatedData,
         updatedBy: session.user.id,
@@ -149,10 +158,11 @@ export async function PUT(
 // DELETE: Delete expense
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -160,7 +170,7 @@ export async function DELETE(
 
     // Check if expense exists
     const existingExpense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingExpense) {
@@ -189,7 +199,7 @@ export async function DELETE(
 
     // Delete expense
     await prisma.expense.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({
@@ -208,10 +218,11 @@ export async function DELETE(
 // PATCH: Update expense status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { id } = await params;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -234,7 +245,7 @@ export async function PATCH(
 
     // Check if expense exists
     const existingExpense = await prisma.expense.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingExpense) {
@@ -246,7 +257,7 @@ export async function PATCH(
 
     // Update status
     const expense = await prisma.expense.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         status,
         updatedBy: session.user.id,

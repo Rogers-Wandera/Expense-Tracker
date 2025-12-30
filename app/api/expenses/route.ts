@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { expenseSchema } from "@/lib/validations/expense";
 import { ExpenseStatus } from "@/generated/prisma";
+import dayjs from "dayjs";
 
 // GET: Fetch expenses with filtering and pagination
 export async function GET(request: NextRequest) {
@@ -46,12 +47,21 @@ export async function GET(request: NextRequest) {
     if (departmentId && departmentId !== "all") {
       where.departmentId = departmentId;
     }
-    if (startDate && endDate) {
-      where.date = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      };
+
+    if (startDate || endDate) {
+      where.date = {};
+
+      if (startDate) {
+        const start = dayjs(startDate).startOf("day").toDate();
+        where.date.gte = start;
+      }
+
+      if (endDate) {
+        const end = dayjs(endDate).endOf("day").toDate();
+        where.date.lte = end;
+      }
     }
+
     if (search) {
       where.OR = [
         { description: { contains: search, mode: "insensitive" } },
@@ -120,28 +130,108 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create new expense
+// Create a new Expense
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized. Please log in to continue." },
+        { status: 401 }
+      );
     }
 
     // Check permissions
     if (session.user.role === "VIEWER") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "You don't have permission to create expenses.",
+        },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();
 
-    // Validate input
+    // Validate input data first
+    if (!body.amount || isNaN(parseFloat(body.amount))) {
+      return NextResponse.json(
+        { success: false, error: "Please enter a valid amount." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.description || body.description.trim() === "") {
+      return NextResponse.json(
+        { success: false, error: "Description is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!body.date) {
+      return NextResponse.json(
+        { success: false, error: "Date is required." },
+        { status: 400 }
+      );
+    }
+
+    // Parse date using dayjs
+    let parsedDate: Date;
+    try {
+      parsedDate = dayjs(body.date).toDate();
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("Invalid date");
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, error: "Please enter a valid date." },
+        { status: 400 }
+      );
+    }
+
+    // Parse amount
+    const amount = parseFloat(body.amount);
+    if (amount <= 0) {
+      return NextResponse.json(
+        { success: false, error: "Amount must be greater than 0." },
+        { status: 400 }
+      );
+    }
+
+    // Validate using Zod schema
     const validatedData = expenseSchema.parse({
       ...body,
-      amount: parseFloat(body.amount),
-      date: new Date(body.date),
+      amount,
+      date: parsedDate,
     });
+
+    // Check if category exists (if provided)
+    if (validatedData.categoryId) {
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: validatedData.categoryId },
+      });
+      if (!categoryExists) {
+        return NextResponse.json(
+          { success: false, error: "Selected category does not exist." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Check if department exists (if provided)
+    if (validatedData.departmentId) {
+      const departmentExists = await prisma.department.findUnique({
+        where: { id: validatedData.departmentId },
+      });
+      if (!departmentExists) {
+        return NextResponse.json(
+          { success: false, error: "Selected department does not exist." },
+          { status: 400 }
+        );
+      }
+    }
 
     // Create expense
     const expense = await prisma.expense.create({
@@ -165,15 +255,57 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Create expense error:", error);
 
+    // Handle Zod validation errors with user-friendly messages
     if (error.name === "ZodError") {
+      // Get the first error message for simplicity
+      const firstError = error.errors[0];
+      let errorMessage = "Validation error";
+
+      if (firstError?.message) {
+        errorMessage = firstError.message;
+      } else if (firstError?.path?.length > 0) {
+        // Format field name (e.g., "amount" -> "Amount")
+        const fieldName = firstError.path[0];
+        const formattedFieldName =
+          fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+        errorMessage = `${formattedFieldName} is invalid.`;
+      }
+
       return NextResponse.json(
-        { success: false, error: "Validation error", details: error.errors },
+        { success: false, error: errorMessage },
         { status: 400 }
       );
     }
 
+    // Handle Prisma errors
+    if (error.code === "P2002") {
+      // Unique constraint violation
+      return NextResponse.json(
+        {
+          success: false,
+          error: "An expense with these details already exists.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (error.code === "P2003") {
+      // Foreign key constraint violation
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid reference to category or department.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Generic error
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to create expense" },
+      {
+        success: false,
+        error: error.message || "Failed to create expense. Please try again.",
+      },
       { status: 500 }
     );
   }

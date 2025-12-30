@@ -2,343 +2,295 @@
 
 A production-ready internal expense and accounting management platform built with Next.js 14, TypeScript, and PostgreSQL. Designed for XenFi Systems to demonstrate full-stack engineering capabilities with modern best practices.
 
-# 🚀 Live Demo
+## 🚀 Live Demo
 
-Vercel Deployment: https://xenfi-expense-tracker.vercel.app
+**Live Application:** https://expense-tracker-gw3s.vercel.app
 
-# Demo Credentials:
+**GitHub Repository:** https://github.com/Rogers-Wandera/Expense-Tracker
 
-Admin User: admin@xenfi.com / password123
+## 👤 Demo Credentials
 
-Manager User: manager@xenfi.com / password123
+| Role        | Email             | Password    |
+| ----------- | ----------------- | ----------- |
+| **Admin**   | admin@xenfi.com   | password123 |
+| **Manager** | manager@xenfi.com | password123 |
+| **Staff**   | staff@xenfi.com   | password123 |
+| **Viewer**  | viewer@xenfi.com  | password123 |
 
-Staff User: staff@xenfi.com / password123
+## ✨ Features
 
-Viewer User: viewer@xenfi.com / password123
+### ✅ Core Requirements Met
 
-# ✨ Features
+- **Authentication** - Secure login with NextAuth.js (Credentials provider)
+- **Protected Routes** - Dashboard accessible only to authenticated users
+- **Full CRUD Operations** - Expenses, Categories, Departments & Users with validation
+- **Dashboard Analytics** - Monthly totals, category breakdown, recent expenses, department budgets
+- **Database** - PostgreSQL with Prisma ORM, migrations, and comprehensive seeding
+- **Deployment** - Fully deployed on Vercel with proper environment variables
 
-✅ Core Requirements
-🔐 Authentication - Secure login with NextAuth.js (Credentials provider)
+### 🎯 Bonus Features Implemented
 
-🛡️ Protected Routes - Dashboard accessible only to authenticated users
+- **Role-based Access Control (RBAC)** - ADMIN, MANAGER, STAFF, VIEWER roles with different permissions
+- **Receipt Upload** - Cloudinary integration for receipt image/PDF storage with preview
+- **Complete Audit Trail** - `createdBy`, `updatedBy`, timestamps on all models
+- **Department Management** - Budget tracking, color-coded departments, expense allocation
+- **Responsive Design** - Mobile-first UI with collapsible sidebar
+- **Modern UI/UX** - Dark/light theme support, intuitive navigation
 
-📝 Full CRUD Operations - Expenses, Categories, Departments & Users with validation
+## 🏗️ Tech Stack & Architecture
 
-📊 Dashboard Analytics - Monthly totals, category breakdown, recent expenses, department budgets
+### Frontend
 
-🗃️ Database - PostgreSQL with Prisma ORM, migrations, and comprehensive seeding
+- **Next.js 14 (App Router)** - For server-side rendering, API routes, and optimal performance
+- **TypeScript** - Type safety and enhanced developer experience
+- **Tailwind CSS** - Utility-first CSS for rapid UI development
+- **HeroUI** - Accessible, customizable React components
+- **Recharts** - Interactive data visualizations for analytics
 
-⚡ Deployment - Fully deployed on Vercel with proper environment variables
+### Backend
 
-🎯 Bonus Features Implemented
-👥 Role-based Access Control (RBAC) - ADMIN, MANAGER, STAFF, VIEWER roles with different permissions
+- **Next.js API Routes** - Serverless backend with built-in routing
+- **Prisma ORM** - Type-safe database operations and migrations
+- **NextAuth.js** - Authentication with JWT sessions and role-based protection
+- **PostgreSQL** - Relational database with Neon.tech for production
 
-📁 Receipt Upload - Cloudinary integration for receipt image/PDF storage with preview
+### Services & Storage
 
-📝 Complete Audit Trail - createdBy, updatedBy, timestamps on all models with self-referential relationships
+- **Cloudinary** - Cloud-based image/PDF storage for receipts
+- **Vercel** - Deployment and hosting platform with edge functions
+- **Bcryptjs** - Secure password hashing and verification
 
-🏢 Department Management - Budget tracking, color-coded departments, expense allocation
+## 🚀 Quick Start
 
-📱 Fully Responsive Design - Mobile-first UI with collapsible sidebar
+### Prerequisites
 
-⚡ Performance Optimized - React cache, loading states, optimized queries with proper indexing
+- Node.js 18+ and npm/yarn/pnpm
+- PostgreSQL database (local or Neon.tech or any provider)
+- Cloudinary account (optional, for receipt uploads)
 
-🎨 Modern UI - Custom HeroUI styled components with dark/light theme support
+### Installation
 
-🔒 Security - Password hashing with bcrypt, protected routes, role-based API endpoints
+1. **Clone and install:**
 
-📊 Data Visualization - Interactive charts with Recharts for expense analytics
+   ```bash
+   git clone https://github.com/Rogers-Wandera/Expense-Tracker.git
+   cd Expense-Tracker
+   npm install
+   ```
 
-# 📋 Tech Stack
+2. **Environment Setup:**
+   Create .env.local file:
 
-Frontend
-Next.js 14 - React framework with App Router
+   # Database
 
-TypeScript - Type safety and better developer experience
+   DATABASE_URL="postgresql://username:password@localhost:5432/xenfi_expense"
 
-Tailwind CSS - Utility-first CSS framework
+   # NextAuth
 
-HeroUI - Reusable, accessible UI components
+   NEXTAUTH_SECRET="your-secret-key-here"
+   NEXTAUTH_URL="http://localhost:3000"
 
-@tanstack/react-form - Performant form handling
+   # App URLs
 
-Recharts - Interactive data visualization
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-Tabler Icons - Beautiful icon library
+   # Cloudinary (Optional)
 
-Backend
-Next.js API Routes - Serverless backend endpoints
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
+   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="your-upload-preset"
 
-Prisma - Type-safe ORM for PostgreSQL
+3. **Database Setup:** # Generate Prisma client
+   npm run prisma:generate
 
-NextAuth.js (Auth.js) - Authentication & authorization with JWT
+   # Run migrations
 
-PostgreSQL - Primary database (Neon.tech recommended)
+   npm run prisma:migrate
 
-Bcryptjs - Password hashing and verification
+   # Seed with sample data
 
-# Storage & Services
+   npm run seed
 
-Cloudinary - Receipt image/PDF upload and storage
+4. **Start Development Server:**
+   npm run dev
 
-Neon.tech - Serverless PostgreSQL database (free tier available)
+## ⚙️ Database Management Commands
 
-Vercel - Deployment and hosting platform
-
-# 🏗️ Architecture
-
-Database Schema Overview
-The application uses a comprehensive database schema with the following key models:
-
-User Model: Full user management with roles, departments, and audit trail
-
-Expense Model: Core expense tracking with status, payment methods, and attachments
-
-Category Model: Expense categorization with color coding
-
-Department Model: Department management with budget tracking
-
-Audit Trail: Complete tracking of createdBy, updatedBy, deletedBy across all models
-
-Role-Based Access Control (RBAC)
-ADMIN: Full system access (users, departments, categories, expenses)
-
-MANAGER: Can manage expenses and categories, view departments
-
-STAFF: Can create and manage own expenses, view categories
-
-VIEWER: Read-only access to expenses and dashboards
-
-# 🚀 Getting Started
-
-Prerequisites
-Node.js 18 or later
-
-PostgreSQL database (or use Neon.tech free tier)
-
-npm, yarn or similar package manager
-
-Cloudinary account (for receipt uploads - optional but recommended)
-
-# Installation
-
-Clone the repository
-
-bash
-git clone https://github.com/yourusername/xenfi-expense-tracker.git
-cd xenfi-expense-tracker
-Install dependencies
-
-bash
-npm install
-
-# or
-
-yarn install
-
-# or
-
-pnpm install
-Set up environment variables
-
-Create a .env.local file in the root directory and add the following variables:
-
-env
-
-# Database
-
-DATABASE_URL="postgresql://username:password@localhost:5432/xenfi_expense_tracker"
-
-# NextAuth
-
-NEXTAUTH_SECRET="your-secret-key-for-nextauth-32-chars-min"
-NEXTAUTH_URL="http://localhost:3000"
-
-# App URLs
-
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_BASE_URL="http://localhost:3000"
-
-# Cloudinary (Optional - for receipt uploads)
-
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="your-upload-preset"
-Note: For production, use Neon.tech or another PostgreSQL provider and update the DATABASE_URL accordingly.
-
-Set up the database
-
-bash
-
-# Generate Prisma client
+### Generate Prisma client
 
 npm run prisma:generate
 
-# Run database migrations
+### Run migrations
 
 npm run prisma:migrate
 
-# Seed the database with sample data
+### Seed database
 
 npm run seed
-Start the development server
 
-bash
-npm run dev
-
-# or
-
-yarn dev
-The application will be available at http://localhost:3000
-
-📁 Project Structure
-
-xenfi-expense-tracker/
-├── app/
-│ ├── api/ # API routes
-│ │ ├── auth/
-│ │ ├── categories/
-│ │ ├── departments/
-│ │ ├── expenses/
-│ │ └── users/
-│ ├── auth/ # Authentication pages
-│ └── dashboard/ # Dashboard pages
-├── components/ # React components
-│ ├── dashboard/ # Dashboard-specific components
-│ └── expenses/ # Expense components
-├── generated/prisma/ # Generated Prisma client
-├── hooks/ # Custom React hooks
-├── lib/ # Utility functions and configurations
-│ ├── prisma.ts # Prisma client instance
-│ ├── auth.ts # NextAuth configuration
-│ ├── utils.ts # Utility functions
-│ └── scripts/
-│ └── seed.ts # Database seeding script
-├── prisma/
-│ └── schema.prisma # Database schema
-└── types/ # TypeScript type definitions
-
-# 🗃️ Database Management
-
-Available Scripts
-
-## Generate Prisma client
-
-npm run prisma:generate
-
-## Open Prisma Studio (database GUI)
+### Open Prisma Studio (GUI)
 
 npm run prisma:studio
 
-## Create and apply migrations
-
-npm run prisma:migrate
-
-## Apply migrations in production
-
-npm run prisma:migrate:deploy
-
-## Reset database (development only)
+### Reset database (dev only)
 
 npm run prisma:reset
 
-## Seed database with sample data
+## 🔧 Technical Decisions & Tradeoffs
 
-npm run seed
-Seeding the Database
-The seed script (lib/scripts/seed.ts) creates:
+### Technology Choices
 
-5 departments with budgets and color coding
+Next.js 14 App Router
 
-4 users with different roles (ADMIN, MANAGER, STAFF, VIEWER)
+Why: Built-in API routes, server components, and simplified routing
 
-5 expense categories
+Benefit: Reduced boilerplate, better performance with React Server Components
 
-6 sample expenses with different statuses and departments
+Prisma ORM
 
-To run the seed script:
+Why: Type-safe queries, intuitive schema, and automatic migrations
 
-npm run seed
-After seeding, use the demo credentials listed above to log in.
+Benefit: TypeScript integration reduces runtime errors
 
-# 🔧 Environment Variables
+Cloudinary over S3
 
-Required Variables
-Variable Description Example
-DATABASE_URL PostgreSQL connection string postgresql://user:pass@localhost:5432/db
-NEXTAUTH_SECRET Secret for NextAuth.js sessions your-32-character-secret
-NEXTAUTH_URL Base URL for NextAuth http://localhost:3000
-NEXT_PUBLIC_APP_URL Public app URL http://localhost:3000
-Optional Variables
-Variable Description Purpose
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME Cloudinary cloud name Receipt uploads
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET Cloudinary upload preset Receipt uploads
+Why: Simpler implementation with built-in image transformations
 
-# 📱 Features in Detail
+Benefit: No need for presigned URLs or complex bucket policies
 
-# 1. Dashboard
+Tradeoff: Less control over storage costs at large scale
 
-Monthly expense summary with trend analysis
+HeroUI Component Library
 
-Category-wise expense breakdown (chart & table)
+Why: Built on Tailwind CSS with dark mode support
 
-Department budget utilization
+Benefit: Consistent design system with minimal custom CSS
 
-Recent expenses with quick actions
+JWT-based Sessions
 
-Responsive design for all screen sizes
+Why: Stateless authentication, works well with serverless deployment
 
-# 2. Expense Management
+Benefit: Scalable and compatible with Vercel's edge functions
 
-Create, read, update, and delete expenses
+### Tradeoffs & Limitations
 
-Receipt upload with preview (images and PDF)
+#### File Storage
 
-Multiple payment methods (Cash, Card, Bank Transfer, etc.)
+Choice: Used Cloudinary instead of S3
 
-Expense status tracking (Draft → Pending → Approved → Paid)
+Reason: S3 account access issues during development
 
-Department assignment for expense tracking
+Impact: Easier to implement but less enterprise-grade than S3
 
-# 3. User Management
+Migration Path: Can switch to S3 with minimal code changes
 
-Role-based access control (ADMIN, MANAGER, STAFF, VIEWER)
+#### Authentication Scope
 
-Department assignment for users
+Choice: Email/password only, no social login
 
-User status management (Active/Inactive, Verified, Locked)
+Reason: Focus on core functionality within time constraints
+
+Impact: Simpler user management but fewer login options
+
+Extensibility: NextAuth.js ready for OAuth providers if needed
+
+#### Real-time Updates
+
+Limitation: No WebSocket/Socket.io for real-time updates
+
+Workaround: Manual refresh or periodic polling
+
+Future Enhancement: Can add Server-Sent Events or WebSockets
+
+#### Offline Support
+
+Limitation: Limited offline capabilities
+
+Current: Basic form persistence with localStorage
+
+Future Enhancement: Service Worker for PWA features
+
+#### Internationalization
+
+Limitation: Single currency (UGX) support
+
+Reason: Simplified for demo purposes
+
+Extensibility: Currency field can be added to expenses model
+
+#### Email Notifications
+
+Limitation: No email verification or notification system
+
+Reason: Focus on core expense tracking features
+
+Future Enhancement: Integration with SendGrid or Resend
+
+## 🎯 Features in Detail
+
+### Dashboard
+
+Monthly expense summaries with visual trends
+
+Category breakdown using interactive charts
+
+Department budget utilization tracking
+
+Recent expenses with quick-action buttons
+
+### Expense Management
+
+Create expenses with receipt upload (image/PDF)
+
+Status tracking: Draft → Pending → Approved → Paid
+
+Multiple payment methods support
+
+Department and category assignment
+
+Search and filter capabilities
+
+### User Management
+
+Four distinct roles with granular permissions
+
+Department-based user organization
 
 Profile image upload with Cloudinary
 
-# 4. Category & Department Management
+Account status controls (active/locked/verified)
 
-Color-coded categories for visual distinction
-
-Department budgets with tracking
-
-Hierarchical expense organization
-
-# 5. Authentication & Security
-
-Secure login with email/password
-
-Protected routes based on user roles
-
-JWT-based session management
+### Security Features
 
 Password hashing with bcrypt
 
-# Build the project
+Protected API routes by user role
 
-npm run build
+Input validation on all forms
+
+Secure session management with JWT
+
+## 🔍 Code Quality & Best Practices
+
+Type Safety: Full TypeScript implementation with strict mode
+
+Error Handling: Comprehensive error handling and user-friendly messages
+
+Performance: Optimized database queries with proper indexing
+
+Accessibility: Semantic HTML and ARIA labels where needed
+
+Responsive Design: Mobile-first approach with breakpoints
+
+## 📞 Support & Contact
+
+For issues or questions:
+
+Email: rogerrisha@gmail.com
+
+GitHub Issues: https://github.com/Rogers-Wandera/Expense-Tracker/issues
 
 📄 License
-This project is free . All rights reserved.
-
-🆘 Support
-For support, email rogerrisha@gmail.com or create an issue in the GitHub repository.
-
-🎯 Project Status
-✅ Complete & Production Ready
+This project is proprietary and confidential. All rights reserved.
 
 Built with ❤️ for XenFi Systems Engineering Assessment
+Rogers Wandera - Software Engineer Candidate

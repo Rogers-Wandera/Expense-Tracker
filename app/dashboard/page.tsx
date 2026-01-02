@@ -228,7 +228,7 @@ export default function DashboardPage() {
                   Avg. Expense
                 </span>
                 <span className="font-semibold">
-                  ${data?.summary?.averageAmount?.toFixed(2) || "0.00"}
+                  UGX {data?.summary?.averageAmount?.toFixed(2) || "0.00"}
                 </span>
               </div>
               <div className="flex justify-between items-center">

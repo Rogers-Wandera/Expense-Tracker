@@ -442,7 +442,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                                 {expense.description}
                               </p>
                               <span className="font-semibold text-gray-900 dark:text-white ml-2">
-                                ${expense.amount.toFixed(2)}
+                                UGX {expense.amount.toFixed(2)}
                               </span>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">

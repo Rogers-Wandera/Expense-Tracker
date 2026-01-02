@@ -22,6 +22,7 @@ import { Expense, PaginationData } from "./types";
 import ExpenseStats from "./stats";
 import { useFetch } from "@/hooks/use-fetch";
 import { useMutate } from "@/hooks/use-mutate";
+import { useSearchParams } from "next/navigation";
 
 interface ApiExpensesResponse {
   success: boolean;
@@ -44,6 +45,8 @@ export default function ExpensesPage() {
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const { mutateAsync } = useMutate({});
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search");
 
   // Filters
   const [filters, setFilters] = useState({
@@ -281,6 +284,15 @@ export default function ExpensesPage() {
   };
 
   const loading = expensesLoading || categoriesLoading || departmentsLoading;
+
+  useEffect(() => {
+    if (search) {
+      setFilters((prev) => ({
+        ...prev,
+        search: search,
+      }));
+    }
+  }, [search]);
 
   if (loading && expenses.length === 0) {
     return (
